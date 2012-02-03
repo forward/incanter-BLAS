@@ -1,6 +1,5 @@
 (ns incanter.tests
-  (:use clojure.test
-        (incanter core-tests infix-tests)))
+  (:use clojure.test)
+  (:require (incanter core-tests infix-tests stats-tests)))
 
-(run-tests 'incanter.core-tests)
-(run-tests 'incanter.infix-tests)
+(run-tests 'incanter.core-tests 'incanter.infix-tests 'incanter.stats-tests)

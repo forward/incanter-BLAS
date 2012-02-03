@@ -34,7 +34,7 @@
                 [7 8 9]
                 [10 11 12]]))
 
-(comment
+
 (deftest matrix-dims
   ;; checking dimensions
   (is (= (nrow A) 4))
@@ -394,12 +394,9 @@
   ;; calculate the sum of values in a vector or 1D matrix
   (is (= (sum x) 2700.0)))
 
-;; @todo
-(comment
 (deftest sum-of-squares-test
   ;; calculate the sum of squares of values in a vector or 1D matrix
   (is (= (sum-of-squares x) 315638.0)))
-)
 
 (deftest prod-test
   ;; calculate the product of values in a vector or 1D matrix
@@ -446,14 +443,3 @@
   (is (= ($= 1 / 2 * 3) 3/2)))
 
 
-
-(def m (identity-matrix 3))
-(println (exp (pow (mult m (plus m m)) 3)))
-)
-
-(deftest problem
-  (println "now")
-  (is (= (minus A A A) (matrix [[-1 -2 -3]
-                                [-4 -5 -6]
-                                [-7 -8 -9]
-                                [-10 -11 -12]]))))

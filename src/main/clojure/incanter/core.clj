@@ -35,6 +35,7 @@
         [incanter.infix :only (infix-to-prefix defop)]
         [clojure.set :only (difference)])
   (:import (incanter Matrix)
+           (org.apache.commons.math.stat.descriptive.summary SumOfSquares Sum Product)
            (uk.co.forward.clojure.incanter DoubleFunctions)
            (org.jblas DoubleMatrix)
            (javax.swing JTable JScrollPane JFrame)
@@ -787,21 +788,17 @@
     (for [j (range (nrow mat)) i (range j (nrow mat))] (sel mat i j))))
 
 
-;; @todo
-(comment
 (defn sum-of-squares
   "Returns the sum-of-squares of the given sequence."
   ([x]
     (let [xx (if (or (nil? x) (empty? x)) [0] (to-list x))]
-      (DoubleDescriptive/sumOfSquares (DoubleArrayList. (double-array xx))))))
-  )
-;; upto
+      (.evaluate (SumOfSquares.) (double-array xx) 0 (count xx)))))
 
 (defn sum
   "Returns the sum of the given sequence."
   ([x]
     (let [xx (if (or (nil? x) (empty? x)) [0] (to-list x))]
-      (apply + (vec (double-array xx))))))
+      (.evaluate (Sum.) (double-array xx) 0 (count x)))))
 
 
 (defn prod
@@ -810,7 +807,7 @@
     (let [xx (if (or (nil? x) (empty? x))
       [1]
       (to-list x))]
-      (apply * (vec (double-array xx))))))
+      (.evaluate (Product.) (double-array xx) 0 (count xx)))))
 
 
 
