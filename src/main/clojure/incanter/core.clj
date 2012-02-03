@@ -36,6 +36,7 @@
         [clojure.set :only (difference)])
   (:import (incanter Matrix)
            (org.apache.commons.math.stat.descriptive.summary SumOfSquares Sum Product)
+           (org.apache.commons.math.special Gamma Beta)
            (uk.co.forward.clojure.incanter DoubleFunctions)
            (org.jblas DoubleMatrix)
            (javax.swing JTable JScrollPane JFrame)
@@ -2218,8 +2219,7 @@ with the resulting new values."
 ;; GAMMA BASED FUNCTIONS FUNCTIONS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; @todo
-(comment
+
 (defn gamma
   "
     Equivalent to R's gamma function.
@@ -2227,9 +2227,20 @@ with the resulting new values."
     References:
       http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
   "
-  ([x]  (Gamma/gamma x)))
+  ([x]  (Math/exp (Gamma/logGamma (inc x)))))
 
 
+(defn log-gamma
+  "
+    Equivalent to R's gamma function.
+
+    References:
+      http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
+  "
+  ([x]  (Gamma/logGamma (inc x))))
+
+;; @todo
+(comment
 (defn beta
   "
     Equivalent to R's beta function.
@@ -2237,7 +2248,7 @@ with the resulting new values."
     References:
       http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
   "
-  ([a b]  (Gamma/beta a b)))
+  ([a b]  (Math/exp (Beta/logBeta a b))))
 
 
 (defn incomplete-beta

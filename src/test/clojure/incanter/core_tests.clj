@@ -402,6 +402,11 @@
   ;; calculate the product of values in a vector or 1D matrix
   (is (= (prod [1 2 3 4 5 6]) 720.0)))
 
+(deftest gamma-test
+  (is (= (Math/rint (gamma 1)) 1.0))
+  (is (= (Math/rint (gamma 2)) 2.0))
+  (is (= (Math/rint (gamma 3)) 6.0)))
+
 (deftest test-metadata
   (let [md {:name "metadata test"}
         m  (with-meta (identity-matrix 3) md)]
