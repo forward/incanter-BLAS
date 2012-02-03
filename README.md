@@ -3,9 +3,9 @@
 Matrix manipulation library, BLAS under the hood, Incanter interface.
 
 The ported namespaces are:
-- incanter.core
-- incanter.infix
-- incanter.internal
+-incanter.core
+-incanter.infix
+-incanter.internal
 
 ## Performance
 
