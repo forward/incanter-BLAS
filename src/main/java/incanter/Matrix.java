@@ -214,6 +214,10 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
     public double getQuick(int r, int c) {
         return this.matrix.get(r,c);
     }
+    
+    public void set(int r, int c, double val) {
+        this.matrix.put(r,c,val);
+    }
 
     public Matrix viewDice() {
         Matrix m = Matrix.wrap(this.matrix.transpose());
