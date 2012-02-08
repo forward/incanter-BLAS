@@ -36,9 +36,11 @@
         [clojure.set :only (difference)])
   (:import (incanter Matrix)
            (org.apache.commons.math.stat.descriptive.summary SumOfSquares Sum Product)
-           (org.apache.commons.math.special Gamma Beta)
+           ;(org.apache.commons.math.special Gamma Beta)
+           (cern.jet.math.tdouble DoubleArithmetic)
            (uk.co.forward.clojure.incanter DoubleFunctions)
            (org.jblas DoubleMatrix)
+           (cern.jet.stat.tdouble DoubleDescriptive Gamma)
            (javax.swing JTable JScrollPane JFrame)
            (java.util Vector)))
 
@@ -185,11 +187,11 @@
   ([mat]
     (cond
       (matrix? mat)
-      (Matrix. (.transpose ^Matrix mat))
+      (with-meta (Matrix. (.transpose ^Matrix mat)) (meta mat))
       (coll? mat)
-      (Matrix. (.transpose (Matrix. (if (coll? (first mat))
-                                      (coerce mat)
-                                      (double-array mat))))))))
+      (with-meta (Matrix. (.transpose (Matrix. (if (coll? (first mat))
+                                                 (coerce mat)
+                                                 (double-array mat))))) (meta mat)))))
 
 
 
@@ -569,8 +571,6 @@
   ([A] (transform-with A #(Math/atan %) atan)))
 
 
-;; @todo
-(comment
 (defn factorial
   "
     Returns the factorial of k (k must be a positive integer). Equivalent to R's
@@ -606,10 +606,6 @@
 
   "
   ([n k] (DoubleArithmetic/binomial (double n) (long k))))
-
- )
-;; upto
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MATRIX FUNCTIONS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -951,6 +947,12 @@
     (let [result (Matrix/decompLU mat)]
       {:L (Matrix. (aget result 0))
        :U (Matrix. (aget result 1))})))
+
+;(defn proj [u v]
+;  (mult (div (mmult v (trans u)) (mmult u (trans u))) u))
+
+;(defn gram-schmidt [m]
+;  (let []))
 
 ;;@todo
 (comment
@@ -2220,6 +2222,10 @@ with the resulting new values."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GAMMA BASED FUNCTIONS FUNCTIONS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn gamma
   "
     Equivalent to R's gamma function.
@@ -2227,20 +2233,9 @@ with the resulting new values."
     References:
       http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
   "
-  ([x]  (Math/exp (Gamma/logGamma (inc x)))))
+  ([x]  (Gamma/gamma x)))
 
 
-(defn log-gamma
-  "
-    Equivalent to R's gamma function.
-
-    References:
-      http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
-  "
-  ([x]  (Gamma/logGamma (inc x))))
-
-;; @todo
-(comment
 (defn beta
   "
     Equivalent to R's beta function.
@@ -2248,7 +2243,7 @@ with the resulting new values."
     References:
       http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/Gamma.html
   "
-  ([a b]  (Math/exp (Beta/logBeta a b))))
+  ([a b]  (Gamma/beta a b)))
 
 
 (defn incomplete-beta
@@ -2274,8 +2269,7 @@ with the resulting new values."
   "
   ([x a b]
     (Gamma/incompleteBeta a b x)))
-)
-;; upto
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SYMMETRIC MATRIX
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2752,7 +2746,6 @@ and z calculated by applying f to the combinations of x and y."
     (catch java.net.MalformedURLException _
       (java.io.FileInputStream. location))))
 
-;;@todo
 (comment
 
 ;; PRINT METHOD FOR INCANTER DATASETS

@@ -1,6 +1,29 @@
+
+;;; core-test-cases.clj -- Unit tests of Incanter functions 
+
+;; by David Edgar Liebke http://incanter.org
+;; October 31, 2009
+
+;; Copyright (c) David Edgar Liebke, 2009. All rights reserved.  The use
+;; and distribution terms for this software are covered by the Eclipse
+;; Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;; which can be found in the file epl-v10.html at the root of this
+;; distribution.  By using this software in any fashion, you are
+;; agreeing to be bound by the terms of this license.  You must not
+;; remove this notice, or any other, from this software.
+
+
+;; to run these tests:
+;; (use 'tests core-test-cases)
+;;  need to load this file to define data variables
+;; (use 'clojure.test) 
+;; then run tests
+;; (run-tests 'incanter.tests.core-test-cases)
+
 (ns incanter.core-tests
   (:use clojure.test
         (incanter core)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; UNIT TESTS FOR incanter.core.clj
@@ -22,6 +45,12 @@
   (is (= (sel dataset4 :cols "c") [3 6]))
   (is (= (sel dataset5 :rows 1 :cols :a) nil))
   (is (= (sel dataset6 :cols :a) 1)))
+
+(deftest dataset-transforms
+  (is (= (transform-col dataset6 :b + 10) (dataset [:a :b :c] [[1 12 3]]))
+    "Single-row special case")
+  (is (= (transform-col dataset1 :b (partial + 10))) (dataset [:a :b :c] [[1 12 3] [4 15 6]]))
+  (is (= (transform-col dataset1 :b * 2) (dataset [:a :b :c] [[1 4 3] [4 10 6]]))))
 
 ;; define a simple matrix for testing
 (def A (matrix [[1 2 3]
@@ -69,6 +98,8 @@
   (is (= (nth (nth A 1) 1.0)))
   ;; get column 1 (i.e. second column) of matrix A
   (is (= (map #(nth % 1) A) [2.0 5.0 8.0 11.0])))
+
+
 
 ;; transposing matrices
 (deftest matrix-trans-test
@@ -146,7 +177,6 @@
                                       [0 1 0]
                                       [0 0 1]]))))
 
-
 (deftest matrix-to-list-tests
   ;; convert a matrix to clojure vectors
   (is (= (to-list A) [[1.0 2.0 3.0]
@@ -160,7 +190,6 @@
   (is (= (to-list [[1 2] [3 4]]) [[1 2] [3 4]]))
   (is (= (to-list 3) 3))
   (is (nil? (to-list nil))))
-
 
 (deftest matrix-sel-tests
   ;; select the element at row 3 (i.e. fourth row) and column 2 (i.e. third column)
@@ -185,7 +214,7 @@
                                                        [7 8 9]
                                                        [10 11 12]])))
   ;; the following tests pass, but the result of these seq ops isn't a proper matrix,
-  ;; rather its a sequence of row vectors that behave like a matrix except ncol
+  ;; rather its a sequence of row vectors that behave like a matrix except ncol 
   ;; returns 1 no matter how many columns are in the row matrices. Wrap the result
   ;; in a call to matrix (like above to get a proper matrix).
   (is (= (filter #(> (sum %) 6.0) A) (matrix [[4 5 6]
@@ -194,7 +223,6 @@
   ;; return rows where the first element is greater than 6
   (is (= (filter #(> (nth % 0) 6.0) A)  (matrix [[7 8 9]
                                                  [10 11 12]]))))
-
 
 (deftest matrix-drop-test
   ;; drop the first two rows
@@ -343,7 +371,6 @@
   (is (= (reduce mult A) (matrix [280 880 1944] 3)))
   (is (= (reduce mult (trans A)) (matrix [6 120 504 1320] 4))))
 
-
 (deftest matrix-mmult-tests
   ;; perform matrix multiplication
   (is (= (mmult A (trans A)) (matrix [[14  32  50  68]
@@ -402,10 +429,6 @@
   ;; calculate the product of values in a vector or 1D matrix
   (is (= (prod [1 2 3 4 5 6]) 720.0)))
 
-(deftest gamma-test
-  (is (= (Math/rint (gamma 1)) 1.0))
-  (is (= (Math/rint (gamma 2)) 2.0))
-  (is (= (Math/rint (gamma 3)) 6.0)))
 
 (deftest test-metadata
   (let [md {:name "metadata test"}
@@ -417,20 +440,19 @@
       (is (nil? (meta (kronecker 4 m))))
       (is (nil? (meta (mmult m (trans m)))))
       (is (nil? (some map?
-                  (for [op [solve decomp-cholesky decomp-svd decomp-eigenvalue decomp-lu]] ;;decomp-qr
+                  (for [op [solve decomp-cholesky decomp-svd decomp-eigenvalue decomp-lu]] ;decomp-qr
                     (meta (-> m op)))))))
     (testing "Matrix math ops"
       (is (nil? (some map?
                   (for [op [plus minus mult div pow atan2]]
                     (meta (-> m #(op % %)))))))
       (is (nil? (some map?
-                  (for [op [sqrt sq log log2 abs asin acos atan log10 exp]]
+                  (for [op [sqrt sq log log2 log10 exp abs sin asin cos acos tan atan]]
                     (meta (-> m op)))))))
-    ;(testing "Known Matrix metadata holes"
-    ;  (is (nil? (some nil?
-    ;              (for [op [seq trans pow atan2]]
-    ;                (meta (-> m op)))))))
-    ))
+    (testing "Known Matrix metadata holes"
+      (is (nil? (some nil?
+                  (for [op [seq trans pow atan2]]
+                    (meta (-> m op)))))))))
 
 
 
@@ -448,3 +470,7 @@
   (is (= ($= 1 / 2 * 3) 3/2)))
 
 
+(deftest factorial-test
+  (is (factorial 5) 120.0)
+  (is (factorial 0) 1.0)
+  (is (thrown? AssertionError (factorial -1))))
