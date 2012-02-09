@@ -225,7 +225,7 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
     
     public double det() {
         Decompose.LUDecomposition<DoubleMatrix> lup = Decompose.lu(this.matrix);
-        return lup.u.diag().prod();
+        return -lup.u.diag().prod();
     }
     
     public double trace() {
@@ -264,7 +264,14 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
     public static DoubleMatrix[]  fullsvd(Matrix matrix) {
         return Singular.fullSVD(matrix.matrix);
     }
-    
+
+    public static DoubleMatrix[]  sparsesvd(Matrix matrix) {
+        return Singular.sparseSVD(matrix.matrix);
+    }
+
+    public static DoubleMatrix eig(Matrix matrix) {
+        return Eigen.eigenvalues(matrix.matrix).getReal();
+    }
     public static DoubleMatrix[] symEig(Matrix matrix) {
         return Eigen.symmetricEigenvectors(matrix.matrix);
     }
@@ -273,7 +280,12 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
         Decompose.LUDecomposition<DoubleMatrix> lup = Decompose.lu(matrix.matrix);
         DoubleMatrix[] result = new DoubleMatrix[2];
         result[0] = lup.l;
-        result[1] = lup.u;
+        
+        if(lup.u.rows < matrix.matrix.rows) {
+            result[1] = DoubleMatrix.concatVertically(lup.u,DoubleMatrix.zeros((matrix.matrix.rows - lup.u.rows),lup.u.columns));
+        } else {
+            result[1] = lup.u;
+        }
 
         return result;
     } 
@@ -296,11 +308,11 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
     }
 
 
-    public double[][] toArray2() {
+    public double[][] toArray() {
         return matrix.toArray2();
     }
 
-    public double[] toArray() {
+    public double[] toArray1() {
         return matrix.toArray();
     }
 

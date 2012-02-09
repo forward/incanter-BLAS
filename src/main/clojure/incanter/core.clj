@@ -35,8 +35,7 @@
         [incanter.infix :only (infix-to-prefix defop)]
         [clojure.set :only (difference)])
   (:import (incanter Matrix)
-           (org.apache.commons.math.stat.descriptive.summary SumOfSquares Sum Product)
-           ;(org.apache.commons.math.special Gamma Beta)
+           (cern.colt.list.tdouble DoubleArrayList)
            (cern.jet.math.tdouble DoubleArithmetic)
            (uk.co.forward.clojure.incanter DoubleFunctions)
            (org.jblas DoubleMatrix)
@@ -143,6 +142,7 @@
   ([^Integer n] (Matrix. (DoubleMatrix/eye n))))
 
 
+(declare to-vect)
 (defn diag
   "   If given a matrix, diag returns a sequence of its diagonal elements.
       If given a sequence, it returns a matrix with the sequence's elements
@@ -161,7 +161,7 @@
   ([m]
     (cond
       (matrix? m)
-      (seq (.toArray (.diag m)))
+      (to-vect (seq (.diag m)))
       (coll? m)
       (Matrix. (.diag (Matrix. (double-array m))))
       (number? m)
@@ -587,7 +587,6 @@
   ([^Integer k] {:pre [(and (number? k) (not (neg? k)))]} (DoubleArithmetic/factorial k)))
 
 
-
 (defn choose
   "
     Returns number of k-combinations (each of size k) from a set S with
@@ -620,11 +619,11 @@
   ([^Matrix mat]
     (cond
       (= (.columns mat) 1)
-      (first (map #(seq %) (seq (.toArray2 (.viewDice mat)))))
+      (first (map #(seq %) (seq (.toArray (.viewDice mat)))))
       (= (.rows mat) 1)
-      (first (map #(seq %) (seq (.toArray2 mat))))
+      (first (map #(seq %) (seq (.toArray mat))))
       :else
-      (map #(seq %) (seq (.toArray2 mat))))))
+      (map #(seq %) (seq (.toArray mat))))))
 
 
 (defmethod to-list ::dataset
@@ -741,7 +740,7 @@
       http://en.wikipedia.org/wiki/Matrix_trace
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/DenseDoubleAlgebra.html
   "
-  ([mat] (.sum (.diag mat))))
+  ([mat] (reduce + (.diag mat))))
 
 
 
@@ -789,14 +788,13 @@
   "Returns the sum-of-squares of the given sequence."
   ([x]
     (let [xx (if (or (nil? x) (empty? x)) [0] (to-list x))]
-      (.evaluate (SumOfSquares.) (double-array xx) 0 (count xx)))))
+      (DoubleDescriptive/sumOfSquares (DoubleArrayList. (double-array xx))))))
 
 (defn sum
   "Returns the sum of the given sequence."
   ([x]
     (let [xx (if (or (nil? x) (empty? x)) [0] (to-list x))]
-      (.evaluate (Sum.) (double-array xx) 0 (count x)))))
-
+      (DoubleDescriptive/sum (DoubleArrayList. (double-array xx))))))
 
 (defn prod
   "Returns the product of the given sequence."
@@ -804,7 +802,7 @@
     (let [xx (if (or (nil? x) (empty? x))
       [1]
       (to-list x))]
-      (.evaluate (Product.) (double-array xx) 0 (count xx)))))
+      (DoubleDescriptive/product (DoubleArrayList. (double-array xx))))))
 
 
 
@@ -866,6 +864,7 @@
 
 
 
+(declare to-vect)
 (defn decomp-svd
   " Returns the Singular Value Decomposition (SVD) of the given matrix. Equivalent to
     R's svd function.
@@ -892,7 +891,7 @@
     (let [result (Matrix/fullsvd mat)
           result (map #(Matrix. %) (vec result))]
       {:U (nth result 0)
-       :S (diag (nth result 1))
+       :S (to-vect (nth result 1))
        :V (nth result 2)})))
 
 
@@ -918,9 +917,8 @@
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/decomposition/DoubleEigenvalueDecomposition.html
   "
   ([mat]
-    (let [result (Matrix/symEig mat)]
-      {:values (diag  (Matrix.(aget result 1)))
-       :vectors (Matrix. (aget result 0))})))
+    (let [result (Matrix/eig mat)]
+      {:values result})))
 
 
 (defn decomp-lu
@@ -959,27 +957,16 @@
 
 
 (defn orthonormal-base-stable [m]
-  (let [vectors (reduce (fn [ac i]
+  (let [ m (trans m)
+         vectors (reduce (fn [ac i]
                           (let [vi (nth m i)]
                             (conj ac (reduce (fn [aci j]
                                                (minus aci (proj (nth ac j) vi)))
                                        vi
                                        (range 0 i)))))
                         []
-                        (range 0 (.columns m)))]
+                        (range 0 (.rows m)))]
     (map (fn [v] (div v (vector-length v))) vectors)))
-
-(defn orthonormal-base [m]
-  (let [m (matrix m)]
-    (reduce (fn [ac j]
-              (let [vj (nth m j)
-                    vj (reduce (fn [aci i]
-                                 (minus aci (proj (nth ac i) vj)))
-                                vj
-                                (range 0 j))]
-                (conj ac (div vj (vector-length vj)))))
-      []
-      (range 0 (.columns m)))))
 
 
 (defn decomp-qr
@@ -1004,7 +991,8 @@
       http://en.wikipedia.org/wiki/QR_decomposition
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/decomposition/DenseDoubleQRDecomposition.html
   "
-    (let [q (orthonormal-base-stable m)]
+    (let [q (orthonormal-base-stable m)
+          m (trans m)]
       {:Q q
        :R (matrix (reduce (fn [r j]
                             (conj r
@@ -1035,9 +1023,9 @@
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/decomposition/DoubleSingularValueDecompositionDC.html
   "
   ([mat]
-    (let [result (Matrix/fullsvd mat)
-          s (diag (aget result 1))]
-      (/ (.max s) (.min s)))))
+    (let [s (:S (decomp-svd mat))]
+      (/ (apply max s)
+        (apply min s)))))
 
 
 (defn rank
@@ -1057,7 +1045,8 @@
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/decomposition/DoubleSingularValueDecompositionDC.html
   "
   ([mat]
-    (.rank mat)))
+    (let [s (:S (decomp-svd mat))]
+      (count (filter (fn [v] (> v 1E-10)) s)))))
 
 
 
@@ -2216,12 +2205,12 @@ with the resulting new values."
       (nth bit-map item))))
 
 
-(defn- get-columns [dataset column-keys]
+(defn get-columns [dataset column-keys]
   (map (fn [col-key] (map #(% (get-column-id dataset col-key)) (:rows dataset))) column-keys))
 
 
 
-(defn- string-to-categorical [dataset column-key dummies?]
+(defn string-to-categorical [dataset column-key dummies?]
   (let [col (first (get-columns dataset [column-key]))]
 
     (if (some string? col)
@@ -2781,7 +2770,7 @@ and z calculated by applying f to the combinations of x and y."
     (catch java.net.MalformedURLException _
       (java.io.FileInputStream. location))))
 
-(comment
+
 
 ;; PRINT METHOD FOR INCANTER DATASETS
 (defmethod print-method incanter.core.Dataset [o, ^java.io.Writer w]
@@ -2793,32 +2782,31 @@ and z calculated by applying f to the combinations of x and y."
       (.write w "\n"))))
 
 
-(defn- block-diag2 [block0 block1]
-  (.composeDiagonal DoubleFactory2D/dense block0 block1))
-(defn block-diag
-  "Blocks should be a sequence of matrices."
-  [blocks]
-  (new Matrix (reduce block-diag2 blocks)))
+(comment
+  (defn- block-diag2 [block0 block1]
+    (.composeDiagonal DoubleFactory2D/dense block0 block1))
+  (defn block-diag
+    "Blocks should be a sequence of matrices."
+    [blocks]
+    (new Matrix (reduce block-diag2 blocks)))
 
-(defn block-matrix
-  "Blocks should be a nested sequence of matrices. Each element of the sequence should be a block row."
-  [blocks]
-  (let [element-class (-> blocks first first class)
-        native-rows (for [row blocks] (into-array element-class row))
-        native-blocks (into-array (-> native-rows first class) native-rows)]
-    (new Matrix (.compose DoubleFactory2D/dense native-blocks))))
+  (defn block-matrix
+    "Blocks should be a nested sequence of matrices. Each element of the sequence should be a block row."
+    [blocks]
+    (let [element-class (-> blocks first first class)
+          native-rows (for [row blocks] (into-array element-class row))
+          native-blocks (into-array (-> native-rows first class) native-rows)]
+      (new Matrix  native-blocks)))
 
-(defn separate-blocks
-  "Partitions should be a sequence of [start,size] pairs."
-  [matrix partitions]
-  (for [p partitions]
-    (for [q partitions]
-      (.viewPart matrix (first p) (first q) (second p) (second q)))))
+  (defn separate-blocks
+    "Partitions should be a sequence of [start,size] pairs."
+    [matrix partitions]
+    (for [p partitions]
+      (for [q partitions]
+        (.viewPart matrix (first p) (first q) (second p) (second q)))))
 
-(defn diagonal-blocks
-  "Partitions should be a sequence of [start,size] pairs."
-  [matrix partitions]
-  (for [p partitions]
-    (.viewPart matrix (first p) (first p) (second p) (second p))))
-
-)
+  (defn diagonal-blocks
+    "Partitions should be a sequence of [start,size] pairs."
+    [matrix partitions]
+    (for [p partitions]
+      (.viewPart matrix (first p) (first p) (second p) (second p)))))
