@@ -34,7 +34,6 @@ public class Matrix implements Sequential, ISeq, Counted, IObj {
     public Matrix(int nrow, int ncol, Number initValue) {
         this.matrix = new DoubleMatrix(nrow,ncol);
         this.meta = null;
-        double value = initValue.doubleValue();
         for(int i = 0; i < nrow; i++)
             for(int j = 0; j < ncol; j++)
                 matrix.put(i, j, initValue.doubleValue());

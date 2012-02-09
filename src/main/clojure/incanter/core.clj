@@ -948,16 +948,43 @@
       {:L (Matrix. (aget result 0))
        :U (Matrix. (aget result 1))})))
 
-;(defn proj [u v]
-;  (mult (div (mmult v (trans u)) (mmult u (trans u))) u))
+(defn vector-length [u]
+  (sqrt (reduce + (map (fn [c] (pow c 2)) u))))
 
-;(defn gram-schmidt [m]
-;  (let []))
+(defn inner-product [u v]
+  (apply + (mult u (trans v))))
 
-;;@todo
-(comment
+(defn proj [u v]
+  (mult (div (inner-product v u) (inner-product u u)) u))
+
+
+(defn orthonormal-base-stable [m]
+  (let [vectors (reduce (fn [ac i]
+                          (let [vi (nth m i)]
+                            (conj ac (reduce (fn [aci j]
+                                               (minus aci (proj (nth ac j) vi)))
+                                       vi
+                                       (range 0 i)))))
+                        []
+                        (range 0 (.columns m)))]
+    (map (fn [v] (div v (vector-length v))) vectors)))
+
+(defn orthonormal-base [m]
+  (let [m (matrix m)]
+    (reduce (fn [ac j]
+              (let [vj (nth m j)
+                    vj (reduce (fn [aci i]
+                                 (minus aci (proj (nth ac i) vj)))
+                                vj
+                                (range 0 j))]
+                (conj ac (div vj (vector-length vj)))))
+      []
+      (range 0 (.columns m)))))
+
+
 (defn decomp-qr
-  " Returns the QR decomposition of the given matrix. Equivalent to R's qr function.
+  ([m]
+    " Returns the QR decomposition of the given matrix. Equivalent to R's qr function.
 
 
     Examples:
@@ -977,12 +1004,20 @@
       http://en.wikipedia.org/wiki/QR_decomposition
       http://incanter.org/docs/parallelcolt/api/cern/colt/matrix/tdouble/algo/decomposition/DenseDoubleQRDecomposition.html
   "
-  ([mat]
-    (let [result (DenseDoubleQRDecomposition. mat)]
-      {:Q (Matrix. (.getQ result false))
-       :R (Matrix. (.getR result false))})))
-)
-;; upto
+    (let [q (orthonormal-base-stable m)]
+      {:Q q
+       :R (matrix (reduce (fn [r j]
+                            (conj r
+                              (reduce (fn [row i]
+                                        (if (< i j)
+                                          (conj row 0)
+                                          (conj row (inner-product (nth q j) (nth m i)))))
+                                []
+                                (range 0 (count q)))))
+                    []
+                    (range 0 (count q))))})))
+
+
 
 (defn condition
   " Returns the two norm condition number, which is max(S) / min(S), where S is the diagonal matrix of singular values from an SVD decomposition.

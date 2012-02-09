@@ -440,7 +440,7 @@
       (is (nil? (meta (kronecker 4 m))))
       (is (nil? (meta (mmult m (trans m)))))
       (is (nil? (some map?
-                  (for [op [solve decomp-cholesky decomp-svd decomp-eigenvalue decomp-lu]] ;decomp-qr
+                  (for [op [solve decomp-cholesky decomp-svd decomp-eigenvalue decomp-lu decomp-qr]]
                     (meta (-> m op)))))))
     (testing "Matrix math ops"
       (is (nil? (some map?
