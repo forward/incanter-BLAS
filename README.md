@@ -8,7 +8,7 @@ In your project.clj file just add the modified library and exclude standard inca
 
     [incanter/incanter "1.3.0-SNAPSHOT"
       :exclusions [incanter/incanter-core]]
-                  [uk.co.forward/incanter-core-jblas "1.3.0-SNAPSHOT"]]
+    [uk.co.forward/incanter-core-jblas "1.3.0-SNAPSHOT"]
 
 ## Benchmarking
 
