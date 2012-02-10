@@ -1,33 +1,26 @@
 ## About
 
-Matrix manipulation library, BLAS under the hood, Incanter interface.
+Modified version of [incanter-core](http://incanter.org/) to use [jBLAS](https://github.com/mikiobraun/jblas) as the matrix manipulation library instead of Parallel COLT.
 
-The ported namespaces are:
--incanter.core
--incanter.infix
--incanter.internal
+## Usage
 
-## Performance
+In your project.clj file just add the modified library and exclude standard incanter-core:
 
-    (defn multiplication-test2 [dim]
-      (let [r   (range 0 dim)
-             m (matrix (for [_ r] (for [_ r] (rand))))]
-        (time  (do (mmult m m) :ok))))
-     
-    (multiplication-test2 10)
-    (multiplication-test2 100)
-    (multiplication-test2 1000)
-     
-    ;; incanter+colt
-    "Elapsed time: 0.042 msecs"
-    "Elapsed time: 2.109 msecs"
-    "Elapsed time: 1523.129 msecs"
-     
-    ;; incanter+jBlas
-     
-    "Elapsed time: 0.089 msecs"
-    "Elapsed time: 0.882 msecs"
-    "Elapsed time: 230.297 msecs"
+    [incanter/incanter "1.3.0-SNAPSHOT"
+      :exclusions [incanter/incanter-core]]
+                  [uk.co.forward/incanter-core-jblas "1.3.0-SNAPSHOT"]]
+
+## Performance & Benchmarking
+
+The following charts show the performance of Incanter using COLT and jBLAS for different basic matrix operations and different matrix sizes.
+The tests can be run using the *incanter/benchmark.clj* file.
+
+!(./readmefiles/eigen_matrix_creation.png)
+!(./readmefiles/multipliction.png)
+!(./readmefiles/transpose_multiplication.png)
+!(./readmefiles/scalar_multiplication.png)
+!(./readmefiles/solve.png)
+!(./readmefiles/eigen_values.png)
 
 ## Build
 
@@ -35,10 +28,16 @@ Use Maven:
 
     $ mvn compile
     $ mvn clojure:compile
-    $ mvn assembly:single
+    $ mvn package
+    $ mvn assembly:single # optional
 
-## Test & Benchmarking
+## Tests
     
-After compiling Java and Clojure sources:
+After compiling Java and Clojure sources, you can run incanter-core tests + some additional smoke tests can be run using this Maven goal:
     
     $ mvn clojure:test
+
+## Credit & License
+
+Incanter has been written by David Edgar Liebke and it is provided under the [Eclipse Public License 1.0](https://github.com/liebke/incanter/blob/master/epl-v10.html).
+jBLAS has been written by Mikio L. Braun and it is provded under a modified [BSD License ](https://github.com/mikiobraun/jblas/blob/master/COPYING)

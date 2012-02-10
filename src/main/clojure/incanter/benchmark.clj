@@ -11,7 +11,6 @@
   `(let [t# (fn [~'m ~'size] ~@body)]
      [~name
       (fn [numTrials# size#]
-        (println (str "\nTesting " ~name " : " size# "\n"))
         (System/gc)
         (let [m# (rand-mat size#)
               before# (System/currentTimeMillis)
@@ -47,35 +46,35 @@
         (let [this-results (get test-results time)]
           (println (str (name test-name) "," time "," (:total this-results) "," (double (:avg this-results)))))))))
 
-(def *benchmark-suite*  (def-suite
+(def ^:dynamic *benchmark-suite*  (def-suite
 
-                          (benchmark-test
-                            :matrix-creation
-                            (do (rand-mat size) :ok))
+                                    (benchmark-test
+                                      :matrix-creation
+                                      (do (rand-mat size) :ok))
 
-                          (benchmark-test
-                            :matrix-multiplication
-                            (do (mmult m m) :ok))
+                                    (benchmark-test
+                                      :matrix-multiplication
+                                      (do (mmult m m) :ok))
 
-                          (benchmark-test
-                            :solve
-                            (do (solve m) :ok))
+                                    (benchmark-test
+                                      :solve
+                                      (do (solve m) :ok))
 
-                          (benchmark-test
-                            :transpose-matrix-multiplication
-                            (do (mmult m (trans m)) :ok))
+                                    (benchmark-test
+                                      :transpose-matrix-multiplication
+                                      (do (mmult m (trans m)) :ok))
 
-                          (benchmark-test
-                            :matrix-addition
-                            (do (plus m m) :ok))
+                                    (benchmark-test
+                                      :matrix-addition
+                                      (do (plus m m) :ok))
 
-                          (benchmark-test
-                            :matrix-scalar-multiplication
-                            (do (mult m 1) :ok))
+                                    (benchmark-test
+                                      :matrix-scalar-multiplication
+                                      (do (mult m 1) :ok))
 
-                          (benchmark-test
-                            :eigenvalues
-                            (do (decomp-eigenvalue m) :ok))))
+                                    (benchmark-test
+                                      :eigenvalues
+                                      (do (decomp-eigenvalue m) :ok))))
 
 (defn -main [min max step times]
   (report (benchmark (Integer/parseInt min) (Integer/parseInt max) (Integer/parseInt step) (Integer/parseInt times) *benchmark-suite*)))

@@ -34,7 +34,6 @@
            (org.jblas DoubleMatrix)
            (javax.swing JTable JScrollPane JFrame)
            (java.util Vector)
-           (org.apache.commons.math.stat.descriptive.moment Variance)
            (cern.colt.list.tdouble DoubleArrayList)
            (cern.jet.random.tdouble Gamma Beta Binomial ChiSquare DoubleUniform
                                           Exponential NegativeBinomial Normal Poisson
@@ -195,19 +194,18 @@
 
 
 (defn variance
-  "
-    Returns the sample variance of the data, x. Equivalent to R's var function.
+"
+  Returns the sample variance of the data, x. Equivalent to R's var function.
 
-    Examples:
-      (variance (sample-normal 100))
+  Examples:
+    (variance (sample-normal 100))
 
-    References:
-      http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/DoubleDescriptive.html
-      http://en.wikipedia.org/wiki/Sample_variance#Population_variance_and_sample_variance
+  References:
+    http://incanter.org/docs/parallelcolt/api/cern/jet/stat/tdouble/DoubleDescriptive.html
+    http://en.wikipedia.org/wiki/Sample_variance#Population_variance_and_sample_variance
 
-  "
-  ([x] (let [xx (if (or (nil? x) (empty? x)) [0] (to-list x))]
-         (.evaluate (Variance. true) (double-array xx)))))
+"
+  ([x] (DoubleDescriptive/sampleVariance (length x) (sum x) (sum-of-squares x))))
 
 
 (defn sd
