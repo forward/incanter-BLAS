@@ -15,12 +15,12 @@ In your project.clj file just add the modified library and exclude standard inca
 The following charts show the performance of Incanter using COLT and jBLAS for different basic matrix operations and different matrix sizes.
 The tests can be run using the *incanter/benchmark.clj* file.
 
-<img src="/readmefiles/eigen_matrix_creation.png"></img>
-<img src="./readmefiles/multipliction.png"></img>
-<img src="./readmefiles/transpose_multiplication.png"></img>
-<img src="./readmefiles/scalar_multiplication.png"></img>
-<img src="./readmefiles/solve.png"></img>
-<img src="./readmefiles/eigen_values.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/eigen_matrix_creation.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/multipliction.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/transpose_multiplication.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/scalar_multiplication.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/solve.png"></img>
+<img src="https://github.com/forward/incanter-BLAS/raw/master/readmefiles/eigen_values.png"></img>
 
 ## Build
 
